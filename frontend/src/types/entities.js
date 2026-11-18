@@ -1,4 +1,4 @@
-/** @typedef {{id:number,name:string,description:string,entries:Array}} Dataset */
-/** @typedef {{id:number,name:string,memtable_limit:number,l0_trigger:number,max_levels:number,final_compaction:boolean}} Config */
-/** @typedef {{id:number,name:string,dataset_id:number,config_id:number,status:string,result:Object}} Trial */
-export const entityNames={dataset:'键值批次',config:'存储配置',trial:'合并试验'};
+/** @typedef {{id:number,name:string,note:string,status:string,publish_seq:number|null,affected_from:string|null,diff:Array,recomputed:Array,op_count:number,created_at:string,published_at:string|null}} Revision */
+/** @typedef {{id:number,up_to_hour:string,status:string,watermark:number|null,result:Object|null,error:string|null,delay_seconds:number,created_at:string,finished_at:string|null}} Settlement */
+/** @typedef {{hour:string,peak:number,start:number,end:number,start_keys?:Array,end_keys?:Array,source?:string}} HourPeak */
+export const entityNames={revision:'修订批次',settlement:'结算任务',peak:'小时峰值'};

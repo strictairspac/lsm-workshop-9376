@@ -1,27 +1,22 @@
-import time,json,traceback
+import os,time,traceback
 from pathlib import Path
 from sqlalchemy import select
 from .config.database import Session
-from .models.trial import Trial
-from .models.dataset import Dataset
-from .models.config import Config
-from .services.trial import queue
-from .services.lsm_engine import simulate
-heartbeat=Path('/artifacts/worker.heartbeat')
-def run_one(ident):
+from .models.settlement import Settlement
+from .services.settlements import queue,execute,QUEUE
+heartbeat=Path(os.getenv('ARTIFACTS_DIR','/artifacts'))/'worker.heartbeat'
+def recover():
+    """进程重启后接管未完成结算：queued/running 任务按提交顺序重放，幂等。"""
     with Session() as db:
-        x=db.get(Trial,ident)
-        if not x or x.result is not None:return
-        x.status='running';db.commit()
+        pending=list(db.scalars(select(Settlement.id).where(Settlement.status.in_(['queued','running'])).order_by(Settlement.id)))
+    for ident in pending:execute(ident)
+def main():
+    while True:
         try:
-            x.result=simulate(x.input_snapshot['entries'],x.input_snapshot['config']);x.status='passed'
-        except Exception as exc:x.result={'error':str(exc)[:500]};x.status='failed'
-        db.commit();Path(f'/artifacts/lsm-trial-{ident}.json').write_text(json.dumps(x.result,ensure_ascii=False,indent=2))
-while True:
-    try:
-        heartbeat.write_text(str(time.time()));item=queue.blpop('lsm:jobs',timeout=2)
-        if item:run_one(int(item[1]))
-        else:
-            with Session() as db:pending=list(db.scalars(select(Trial.id).where(Trial.status.in_(['queued','running']))))
-            for ident in pending:run_one(ident)
-    except Exception:traceback.print_exc();time.sleep(2)
+            heartbeat.parent.mkdir(parents=True,exist_ok=True)
+            heartbeat.write_text(str(time.time()))
+            item=queue.blpop(QUEUE,timeout=2)
+            if item:execute(int(item[1]))
+            else:recover()
+        except Exception:traceback.print_exc();time.sleep(2)
+if __name__=='__main__':main()

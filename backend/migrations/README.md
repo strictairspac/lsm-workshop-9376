@@ -1,1 +1,1 @@
-Schema v1: users, audit, datasets (JSON write sequence), configs (bounded LSM parameters), trials (immutable input snapshot and JSON result). MySQL stores metadata only. Run python -m scripts.seed_demo for create-if-missing and natural-key seed; existing values are not overwritten.
+Schema v1: users, audit, revisions（修订批次：原始操作快照、切换状态、发布序号、影响起点、修订前后峰值差）, events（带接收序号的乱序事件，revision_id+op_index 唯一）, hour_states（已发布的小时峰值与起止键集）, settlements（结算任务：目标小时、水位线、状态、结果）, meta（结算水位单例行，兼作切换行锁）。MySQL 仅保存业务元数据。运行 python -m scripts.seed_demo 建表与种子；自然键查缺，不覆盖已存在数据。

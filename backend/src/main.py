@@ -5,10 +5,10 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import text
 from .config.database import engine
-from .routes import auth,dataset,config,trial,audit
+from .routes import auth,revisions,settlements,peaks,audit
 from .middlewares.audit import AuditMiddleware
 from .middlewares.request_id import RequestIdMiddleware
-from .services.trial import queue
+from .services.settlements import queue
 @asynccontextmanager
 async def lifespan(app):
     if os.getenv('SEED_DEMO','true')=='true':
@@ -17,7 +17,7 @@ async def lifespan(app):
             seed()
         except Exception:logging.exception('seed failed')
     yield
-app=FastAPI(title='边缘遥测 LSM 合并工坊',lifespan=lifespan)
+app=FastAPI(title='北岭 · 键峰结算工坊',lifespan=lifespan)
 app.add_middleware(AuditMiddleware);app.add_middleware(RequestIdMiddleware)
 @app.exception_handler(ValueError)
 async def invalid(request:Request,exc):return JSONResponse(status_code=422,content={'detail':str(exc)})
@@ -28,4 +28,4 @@ async def db_error(request:Request,exc):
 def health():
     with engine.connect() as c:c.execute(text('SELECT 1'))
     queue.ping();return {'status':'ok'}
-for router in (auth.router,dataset.router,config.router,trial.router,audit.router):app.include_router(router)
+for router in (auth.router,revisions.router,settlements.router,peaks.router,audit.router):app.include_router(router)
