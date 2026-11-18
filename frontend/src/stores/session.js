@@ -1,0 +1,1 @@
+export const session={get:()=>JSON.parse(localStorage.getItem('lsm-session')||'null'),set:data=>localStorage.setItem('lsm-session',JSON.stringify(data)),clear:()=>localStorage.removeItem('lsm-session')};

@@ -1,0 +1,1 @@
+import{esc}from'../../utils/html.js';export function table(heads,rows){return rows.length?'<div class=tablewrap><table><thead><tr>'+heads.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>':'<div class=empty>这里还没有记录。先登记写入批次与配置，再到合并队列提交试验。</div>'}
